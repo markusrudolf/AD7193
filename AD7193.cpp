@@ -5,8 +5,8 @@
 // default register settings
 unsigned long registerMap[4] = {
   0x00,
-  0x080060,
-  0x000117,
+  0x080060, // Mode Register
+  0x000117, // CFG Register
   0x000000
 };
 
@@ -342,7 +342,7 @@ unsigned long AD7193::GetRegisterValue(unsigned char registerAddress, unsigned c
     Serial.print(registerAddress, HEX);
     Serial.print(", command: ");
     Serial.print(writeByte, HEX);
-    Serial.print(", recieved: ");
+    Serial.print(", received: ");
     Serial.println(buffer, HEX);
     //Serial.print(" - ");
     //Serial.println(str);

@@ -5,8 +5,8 @@
 #include <Arduino.h>
 #include <SPI.h>
 
-#define AD7193_CS_PIN     10  // define the chipselect
-#define AD7193_RDY_STATE  MISO   // pin to watch for data ready state
+#define AD7193_CS_PIN     53  // define the chipselect
+#define AD7193_RDY_STATE  50   // pin to watch for data ready state
 
 /* AD7193 Register Map */
 #define AD7193_REG_COMM         0 // Communications Register (WO, 8-bit) 
