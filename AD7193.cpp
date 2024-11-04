@@ -259,7 +259,7 @@ unsigned long AD7193::ReadADCChannel(int channel)  {
 float AD7193::DataToVoltage(long rawData)  {
   float voltage = 0;
   char mGain = 0;
-  float mVref = 2.5;
+  float mVref = 2.4987; // our board, measured with fluke 287
   char mPolarity = 0;
 
   int PGASetting = registerMap[2] & 0x000007;  // keep only the PGA setting bits
