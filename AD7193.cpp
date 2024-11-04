@@ -82,6 +82,9 @@ void AD7193::SetPGAGain(int gain)  {
   registerMap[regAddress] &= 0xFFFFF8; //keep all bit values except gain bits
   registerMap[regAddress] |= gainSetting;
 
+  registerMap[regAddress] &= 0xFFFFEF; //clear BUF bit 4 -> allow input voltages down to GND, but need to have low impedance source
+
+
   SetRegisterValue(regAddress, registerMap[regAddress], registerSize[regAddress], 1);
 }
 
