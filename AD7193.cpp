@@ -11,14 +11,14 @@ unsigned long registerMap[4] = {
 };
 
 int registerSize[8] = {
-  1,
-  3,
-  3,
-  3,
-  1,
-  1,
-  3,
-  3
+  1, // Communication Register (0)
+  3, // Mode Register (1)
+  3, // Configuration Register (2)
+  3, // Data Register (3) (optional with extra status byte)
+  1, // ID Register (4)
+  1, // GPOCON Register (5)
+  3, // Offset Register (6)
+  3  // Full-Scale-Register (7)
 };
 
 
@@ -33,7 +33,7 @@ bool AD7193::begin(void) {
   SPI.setDataMode(SPI_MODE3);
   SPI.setClockDivider(SPI_CLOCK_DIV16);
   //pinMode(AD7193_RDY_STATE, INPUT_PULLUP);
-  
+
   pinMode(AD7193_CS_PIN, OUTPUT);
   delay(100);
 
@@ -54,7 +54,7 @@ void AD7193::Reset(void)  {
   for(i = 0; i < 6; i++)
   {
     SPI.transfer(0xFF);
-  }    
+  }
   digitalWrite(AD7193_CS_PIN, HIGH);
   delay(100);
 }
@@ -63,7 +63,7 @@ void AD7193::SetPGAGain(int gain)  {
 
   Serial.print("\nSetting PGA Gain to ");
   Serial.println(gain);
-  
+
   unsigned long gainSetting;
 
   if(gain == 1)         {gainSetting = 0x0;}
@@ -108,7 +108,7 @@ void AD7193::SetAveraging(int filterRate)  {
 
 void AD7193::SetPsuedoDifferentialInputs(void)  {
   Serial.println("Switching from differential input to pseudo differential inputs...");
-  
+
   unsigned long psuedoBit = 0x040000;
   registerMap[2] &= 0xFBFFFF;
   registerMap[2] |= 0x040000;
@@ -127,7 +127,7 @@ void AD7193::AppendStatusValuetoData(void) {
   registerMap[1] |= 0x100000;  // set DAT_STA to 1
 
   SetRegisterValue(1, registerMap[1], registerSize[1], 1);
-  
+
   //Serial.print(" - New Mode Reg Value: ");
   //Serial.println(registerMap[1], HEX);
 
@@ -140,7 +140,7 @@ void AD7193::Calibrate(void) {
   // Begin Communication cycle, bring CS low manually
   digitalWrite(AD7193_CS_PIN, LOW);
   delay(100);
-  
+
   registerMap[1] &= 0x1FFFFF; //keep all bit values except Channel bits
   registerMap[1] |= 0x800000; // internal zero scale calibration
 
@@ -161,7 +161,7 @@ void AD7193::Calibrate(void) {
   //delay(100);
 
   digitalWrite(AD7193_CS_PIN, HIGH);
-  delay(100); 
+  delay(100);
 }
 
 void AD7193::WaitForADC(void)  {
@@ -191,22 +191,22 @@ void AD7193::IntitiateSingleConversion(void) {
   // Begin Communication cycle, bring CS low manually
   digitalWrite(AD7193_CS_PIN, LOW);
   delay(100);
-  
+
   registerMap[1] &= 0x1FFFFF; //keep all bit values except Channel bits
-  registerMap[1] |= 0x200000; // single conversion mode bits  
+  registerMap[1] |= 0x200000; // single conversion mode bits
 
   SetRegisterValue(1, registerMap[1], 3, 0);  // overwriting previous MODE reg setting 
 }
 
 unsigned long AD7193::ReadADCData(void)  {
-  
+
     unsigned char byteIndex = 0;
     unsigned long buffer = 0;
     unsigned char receiveBuffer = 0;
     unsigned char dataLength = registerSize[3];  // data length depends on if Status register is appended to Data read - see AppendStatusValuetoData()
 
     SPI.transfer(0x58);  // command to start read data
-    
+
     while(byteIndex < dataLength)
     {
       receiveBuffer = SPI.transfer(0);
@@ -223,7 +223,7 @@ void AD7193::SetChannel(int channel) {
     // generate Channel settings bits for Configuration write
     unsigned long shiftvalue = 0x00000100;
     unsigned long channelBits = shiftvalue << channel;
-    
+
     // Write Channel bits to Config register, keeping other bits as is
     registerMap[2] &= 0xFC00FF; //keep all bit values except Channel bits
     registerMap[2] |= channelBits;
@@ -234,7 +234,7 @@ void AD7193::SetChannel(int channel) {
 }
 
 unsigned long AD7193::ReadADCChannel(int channel)  {
-     
+
     SetChannel(channel);
 
     // write command to initial conversion
@@ -243,7 +243,7 @@ unsigned long AD7193::ReadADCChannel(int channel)  {
     // should scale the wait time by averaging
 
     WaitForADC();
-    
+
     unsigned long ADCdata = ReadADCData();
     delay(10);
 
@@ -281,11 +281,11 @@ float AD7193::DataToVoltage(long rawData)  {
     PGAGain = 1;
   }
 
-  
+
   //Serial.print("PGA Gain = ");
   //Serial.println(PGAGain);
 
-  
+
   if(mPolarity == 1)
   {
     voltage = ((double)rawData / 16777216 / (1 << PGAGain)) * mVref; 
@@ -313,12 +313,12 @@ float AD7193::TempSensorDataToDegC(unsigned long rawData)  {
 
 /*! Reads the value of a register. */
 unsigned long AD7193::GetRegisterValue(unsigned char registerAddress, unsigned char bytesNumber, unsigned char modifyCS)  {//getregistervalue
-    
+
     unsigned char receiveBuffer = 0;
     unsigned char writeByte = 0;
     unsigned char byteIndex = 0;
     unsigned long buffer = 0;
-    
+
     writeByte = AD7193_COMM_READ | AD7193_COMM_ADDR(registerAddress);
     if(modifyCS == 1)
     {
@@ -349,8 +349,8 @@ unsigned long AD7193::GetRegisterValue(unsigned char registerAddress, unsigned c
     Serial.println(buffer, HEX);
     //Serial.print(" - ");
     //Serial.println(str);
-    
-    
+
+
     return(buffer);
 }
 
@@ -358,9 +358,9 @@ unsigned long AD7193::GetRegisterValue(unsigned char registerAddress, unsigned c
 void AD7193::SetRegisterValue(unsigned char registerAddress,  unsigned long registerValue,  unsigned char bytesNumber,  unsigned char modifyCS)  {//setregistervalue
     unsigned char commandByte = 0;
     unsigned char txBuffer[4] = {0, 0, 0 ,0};
-    
+
     commandByte = AD7193_COMM_WRITE | AD7193_COMM_ADDR(registerAddress);
-  
+
     txBuffer[0] = (registerValue >> 0)  & 0x000000FF;
     txBuffer[1] = (registerValue >> 8)  & 0x000000FF;
     txBuffer[2] = (registerValue >> 16) & 0x000000FF;
