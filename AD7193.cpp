@@ -267,6 +267,7 @@ unsigned long AD7193::PollDataRegister()
   digitalWrite(AD7193_CS_PIN, LOW);
   unsigned long ADCdata = ReadADCData();
   digitalWrite(AD7193_CS_PIN, HIGH);
+  return(ADCdata);
 }
 
 
