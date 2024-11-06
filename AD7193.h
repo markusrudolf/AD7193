@@ -27,7 +27,8 @@
 #define AD7193_COMM_CREAD       (1 << 2)           // Continuous Read of Data Register.
 
 
-
+#define DISABLE_CS_AFTER_TRANSFER (1)
+#define KEEP_CS_ACTIVE (0)
 
 
 class AD7193
