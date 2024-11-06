@@ -414,6 +414,6 @@ void AD7193::ReadRegisterMap(void)  {
   GetRegisterValue(AD7193_REG_GPOCON, 1, 1);
   GetRegisterValue(AD7193_REG_OFFSET, 3, 1);
   GetRegisterValue(AD7193_REG_FULLSCALE, 3, 1);
-  delay(100);
+  delay(5000);
 }
 
