@@ -107,9 +107,8 @@ void AD7193::SetAveraging(int filterRate)  {
 void AD7193::SetPseudoDifferentialInputs(void)  {
   Serial.println("Switching from differential input to pseudo differential inputs...");
 
-  unsigned long psuedoBit = 0x040000;
   registerMap[AD7193_REG_CONF] &= 0xFBFFFF;
-  registerMap[AD7193_REG_CONF] |= 0x040000;
+  registerMap[AD7193_REG_CONF] |= 0x040000; // pseudo bit
 
   SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], DISABLE_CS_AFTER_TRANSFER);
 
@@ -253,11 +252,17 @@ unsigned long AD7193::ReadADCChannel(int channel)  {
     return(ADCdata);
 }
 
+unsigned long AD7193::PollDataRegister()
+{
+  digitalWrite(AD7193_CS_PIN, LOW);
+  unsigned long ADCdata = ReadADCData();
+  digitalWrite(AD7193_CS_PIN, HIGH);
+}
+
 
 
 float AD7193::DataToVoltage(long rawData)  {
   float voltage = 0;
-  char mGain = 0;
   float mVref = 2.4987; // our board, measured with fluke 287
   char mPolarity = 0;
 
@@ -301,7 +306,7 @@ float AD7193::DataToVoltage(long rawData)  {
 // See "Tempature Sensor" section of AD7193 Datasheet - page 39
 float AD7193::TempSensorDataToDegC(unsigned long rawData)  {
         float degC = (float(rawData - 0x800000) / 2815) - 273;
-        float degF = (degC * 9 / 5) + 32;
+        //float degF = (degC * 9 / 5) + 32;
         /*Serial.print(degC);
         Serial.print(" degC, ");
         Serial.print(degF);

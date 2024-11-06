@@ -50,6 +50,7 @@ public:
 	
 	unsigned long ReadADCChannel(int channel);
 	unsigned long ReadADCData(void);
+	unsigned long PollDataRegister(void);
 	void InitiateSingleConversion(void);
 	void WaitForADC(void);
 	
