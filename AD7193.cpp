@@ -343,7 +343,7 @@ unsigned long AD7193::GetRegisterValue(unsigned char registerAddress, unsigned c
     }
 
     char str[32];
-    sprintf(str, "%06x", buffer);
+    sprintf(str, "%06x", (unsigned int) buffer);
 
     Serial.print("    Read Register Address: 0x");
     Serial.print(registerAddress, HEX);
