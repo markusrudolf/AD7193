@@ -83,7 +83,7 @@ void AD7193::SetPGAGain(int gain)  {
   registerMap[AD7193_REG_CONF] &= 0xFFFFEF; //clear BUF bit 4 -> allow input voltages down to GND, but need to have low impedance source
 
 
-  SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], 1);
+  SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], DISABLE_CS_AFTER_TRANSFER);
 }
 
 void AD7193::SetAveraging(int filterRate)  {
@@ -99,7 +99,7 @@ void AD7193::SetAveraging(int filterRate)  {
   registerMap[AD7193_REG_MODE] &= 0xFFFC00; //keep all bit values except filter setting bits
   registerMap[AD7193_REG_MODE] |= filterRate;
 
-  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 1);
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], DISABLE_CS_AFTER_TRANSFER);
 
 }
 
@@ -111,7 +111,7 @@ void AD7193::SetPsuedoDifferentialInputs(void)  {
   registerMap[AD7193_REG_CONF] &= 0xFBFFFF;
   registerMap[AD7193_REG_CONF] |= 0x040000;
 
-  SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], 1);
+  SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], DISABLE_CS_AFTER_TRANSFER);
 
   //Serial.print(" - on next register refresh, new Config Reg value will be: ");
   //Serial.println(registerMap[AD7193_REG_CONF], HEX);
@@ -125,7 +125,7 @@ void AD7193::AppendStatusValuetoData(void) {
   registerMap[AD7193_REG_MODE] |= 0x100000;  // set DAT_STA to 1
   registerMap[AD7193_REG_MODE] |= (1<<13); // EN_PAR to 1
 
-  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 1);
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], DISABLE_CS_AFTER_TRANSFER);
 
   //Serial.print(" - New Mode Reg Value: ");
   //Serial.println(registerMap[AD7193_REG_MODE], HEX);
@@ -143,7 +143,7 @@ void AD7193::Calibrate(void) {
   registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits
   registerMap[AD7193_REG_MODE] |= 0x800000; // internal zero scale calibration
 
-  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 0);  // overwriting previous MODE reg setting 
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], KEEP_CS_ACTIVE);  // overwriting previous MODE reg setting 
 
   WaitForADC();
   //delay(100);
@@ -154,7 +154,7 @@ void AD7193::Calibrate(void) {
   registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits
   registerMap[AD7193_REG_MODE] |= 0xA00000; // internal full scale calibration
 
-  SetRegisterValue(1, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 0);  // overwriting previous MODE reg setting 
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], KEEP_CS_ACTIVE);  // overwriting previous MODE reg setting 
 
   WaitForADC();
   //delay(100);
@@ -194,7 +194,7 @@ void AD7193::IntitiateSingleConversion(void) {
   registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits
   registerMap[AD7193_REG_MODE] |= 0x200000; // single conversion mode bits
 
-  SetRegisterValue(1, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 0);  // overwriting previous MODE reg setting 
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], KEEP_CS_ACTIVE);  // overwriting previous MODE reg setting 
 }
 
 unsigned long AD7193::ReadADCData(void)  {
@@ -228,7 +228,7 @@ void AD7193::SetChannel(int channel) {
     registerMap[AD7193_REG_CONF] |= channelBits;
 
     // write channel selected to Configuration register
-    SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], 1);
+    SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], DISABLE_CS_AFTER_TRANSFER);
     delay(10);
 }
 
