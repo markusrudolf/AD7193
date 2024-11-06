@@ -77,15 +77,13 @@ void AD7193::SetPGAGain(int gain)  {
     return;
   }
 
-  int regAddress = AD7193_REG_CONF;
+  registerMap[AD7193_REG_CONF] &= 0xFFFFF8; //keep all bit values except gain bits
+  registerMap[AD7193_REG_CONF] |= gainSetting;
 
-  registerMap[regAddress] &= 0xFFFFF8; //keep all bit values except gain bits
-  registerMap[regAddress] |= gainSetting;
-
-  registerMap[regAddress] &= 0xFFFFEF; //clear BUF bit 4 -> allow input voltages down to GND, but need to have low impedance source
+  registerMap[AD7193_REG_CONF] &= 0xFFFFEF; //clear BUF bit 4 -> allow input voltages down to GND, but need to have low impedance source
 
 
-  SetRegisterValue(regAddress, registerMap[regAddress], registerSize[regAddress], 1);
+  SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], 1);
 }
 
 void AD7193::SetAveraging(int filterRate)  {
@@ -98,10 +96,10 @@ void AD7193::SetAveraging(int filterRate)  {
     return;
   }
 
-  registerMap[1] &= 0xFFFC00; //keep all bit values except filter setting bits
-  registerMap[1] |= filterRate;
+  registerMap[AD7193_REG_MODE] &= 0xFFFC00; //keep all bit values except filter setting bits
+  registerMap[AD7193_REG_MODE] |= filterRate;
 
-  SetRegisterValue(1, registerMap[1], registerSize[1], 1);
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 1);
 
 }
 
@@ -110,28 +108,29 @@ void AD7193::SetPsuedoDifferentialInputs(void)  {
   Serial.println("Switching from differential input to pseudo differential inputs...");
 
   unsigned long psuedoBit = 0x040000;
-  registerMap[2] &= 0xFBFFFF;
-  registerMap[2] |= 0x040000;
+  registerMap[AD7193_REG_CONF] &= 0xFBFFFF;
+  registerMap[AD7193_REG_CONF] |= 0x040000;
 
-  SetRegisterValue(2, registerMap[2], registerSize[2], 1);
+  SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], 1);
 
   //Serial.print(" - on next register refresh, new Config Reg value will be: ");
-  //Serial.println(registerMap[2], HEX);
+  //Serial.println(registerMap[AD7193_REG_CONF], HEX);
 }
 
 void AD7193::AppendStatusValuetoData(void) {
   Serial.println("\nEnabling DAT_STA Bit (appends status register to data register when reading)");
+  Serial.println("\nEnabling EN_PAR Bit (parity bit in status after DATA register)");
 
+  registerMap[AD7193_REG_MODE] &= 0xEFFFFF; //keep all bit values except DAT_STA bit
+  registerMap[AD7193_REG_MODE] |= 0x100000;  // set DAT_STA to 1
+  registerMap[AD7193_REG_MODE] |= (1<<13); // EN_PAR to 1
 
-  registerMap[1] &= 0xEFFFFF; //keep all bit values except DAT_STA bit
-  registerMap[1] |= 0x100000;  // set DAT_STA to 1
-
-  SetRegisterValue(1, registerMap[1], registerSize[1], 1);
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 1);
 
   //Serial.print(" - New Mode Reg Value: ");
-  //Serial.println(registerMap[1], HEX);
+  //Serial.println(registerMap[AD7193_REG_MODE], HEX);
 
-  registerSize[3] = 4; // change register size to 4, b/c status register is now appended
+  registerSize[AD7193_REG_DATA] = 4; // change register size to 4, b/c status register is now appended
 }
 
 void AD7193::Calibrate(void) {
@@ -141,10 +140,10 @@ void AD7193::Calibrate(void) {
   digitalWrite(AD7193_CS_PIN, LOW);
   delay(100);
 
-  registerMap[1] &= 0x1FFFFF; //keep all bit values except Channel bits
-  registerMap[1] |= 0x800000; // internal zero scale calibration
+  registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits
+  registerMap[AD7193_REG_MODE] |= 0x800000; // internal zero scale calibration
 
-  SetRegisterValue(1, registerMap[1], 3, 0);  // overwriting previous MODE reg setting 
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 0);  // overwriting previous MODE reg setting 
 
   WaitForADC();
   //delay(100);
@@ -152,10 +151,10 @@ void AD7193::Calibrate(void) {
   Serial.print("\n\nNow full-scale calibration...");
 
 
-  registerMap[1] &= 0x1FFFFF; //keep all bit values except Channel bits
-  registerMap[1] |= 0xA00000; // internal full scale calibration
+  registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits
+  registerMap[AD7193_REG_MODE] |= 0xA00000; // internal full scale calibration
 
-  SetRegisterValue(1, registerMap[1], 3, 0);  // overwriting previous MODE reg setting 
+  SetRegisterValue(1, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 0);  // overwriting previous MODE reg setting 
 
   WaitForADC();
   //delay(100);
@@ -192,10 +191,10 @@ void AD7193::IntitiateSingleConversion(void) {
   digitalWrite(AD7193_CS_PIN, LOW);
   delay(100);
 
-  registerMap[1] &= 0x1FFFFF; //keep all bit values except Channel bits
-  registerMap[1] |= 0x200000; // single conversion mode bits
+  registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits
+  registerMap[AD7193_REG_MODE] |= 0x200000; // single conversion mode bits
 
-  SetRegisterValue(1, registerMap[1], 3, 0);  // overwriting previous MODE reg setting 
+  SetRegisterValue(1, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], 0);  // overwriting previous MODE reg setting 
 }
 
 unsigned long AD7193::ReadADCData(void)  {
@@ -203,7 +202,7 @@ unsigned long AD7193::ReadADCData(void)  {
     unsigned char byteIndex = 0;
     unsigned long buffer = 0;
     unsigned char receiveBuffer = 0;
-    unsigned char dataLength = registerSize[3];  // data length depends on if Status register is appended to Data read - see AppendStatusValuetoData()
+    unsigned char dataLength = registerSize[AD7193_REG_DATA];  // data length depends on if Status register is appended to Data read - see AppendStatusValuetoData()
 
     SPI.transfer(0x58);  // command to start read data
 
@@ -225,11 +224,11 @@ void AD7193::SetChannel(int channel) {
     unsigned long channelBits = shiftvalue << channel;
 
     // Write Channel bits to Config register, keeping other bits as is
-    registerMap[2] &= 0xFC00FF; //keep all bit values except Channel bits
-    registerMap[2] |= channelBits;
+    registerMap[AD7193_REG_CONF] &= 0xFC00FF; //keep all bit values except Channel bits
+    registerMap[AD7193_REG_CONF] |= channelBits;
 
     // write channel selected to Configuration register
-    SetRegisterValue(2, registerMap[2], registerSize[2], 1);
+    SetRegisterValue(AD7193_REG_CONF, registerMap[AD7193_REG_CONF], registerSize[AD7193_REG_CONF], 1);
     delay(10);
 }
 
@@ -262,7 +261,7 @@ float AD7193::DataToVoltage(long rawData)  {
   float mVref = 2.4987; // our board, measured with fluke 287
   char mPolarity = 0;
 
-  int PGASetting = registerMap[2] & 0x000007;  // keep only the PGA setting bits
+  int PGASetting = registerMap[AD7193_REG_CONF] & 0x000007;  // keep only the PGA setting bits
   int PGAGain;
 
   if (PGASetting == 0) {
@@ -341,11 +340,11 @@ unsigned long AD7193::GetRegisterValue(unsigned char registerAddress, unsigned c
     char str[32];
     sprintf(str, "%06x", buffer);
 
-    Serial.print("    Read Register Address: ");
+    Serial.print("    Read Register Address: 0x");
     Serial.print(registerAddress, HEX);
-    Serial.print(", command: ");
+    Serial.print(", command: 0x");
     Serial.print(writeByte, HEX);
-    Serial.print(", received: ");
+    Serial.print(", received: 0x");
     Serial.println(buffer, HEX);
     //Serial.print(" - ");
     //Serial.println(str);
@@ -391,13 +390,14 @@ void AD7193::SetRegisterValue(unsigned char registerAddress,  unsigned long regi
 
 void AD7193::ReadRegisterMap(void)  {
   Serial.println("\n\nRead All Register Values (helpful for troubleshooting)");
-  GetRegisterValue(0, 1, 1);
-  GetRegisterValue(1, 3, 1);
-  GetRegisterValue(2, 3, 1);
-  GetRegisterValue(3, registerSize[3], 1);
-  GetRegisterValue(4, 1, 1);
-  GetRegisterValue(6, 3, 1);
-  GetRegisterValue(7, 3, 1);
+  GetRegisterValue(AD7193_REG_STAT, 1, 1);
+  GetRegisterValue(AD7193_REG_MODE, 3, 1);
+  GetRegisterValue(AD7193_REG_CONF, 3, 1);
+  GetRegisterValue(AD7193_REG_DATA, registerSize[AD7193_REG_DATA], 1);
+  GetRegisterValue(AD7193_REG_ID, 1, 1);
+  GetRegisterValue(AD7193_REG_GPOCON, 1, 1);
+  GetRegisterValue(AD7193_REG_OFFSET, 3, 1);
+  GetRegisterValue(AD7193_REG_FULLSCALE, 3, 1);
   delay(100);
 }
 
