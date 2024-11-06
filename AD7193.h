@@ -52,6 +52,7 @@ public:
 	unsigned long ReadADCData(void);
 	unsigned long PollDataRegister(void);
 	void InitiateSingleConversion(void);
+	void StartContinousConversion(void);
 	void WaitForADC(void);
 	
 

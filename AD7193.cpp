@@ -196,6 +196,16 @@ void AD7193::InitiateSingleConversion(void) {
   SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], KEEP_CS_ACTIVE);  // overwriting previous MODE reg setting 
 }
 
+void AD7193::StartContinousConversion(void) {
+  // Begin Communication cycle, bring CS low manually
+  digitalWrite(AD7193_CS_PIN, LOW);
+  delay(2);
+
+  registerMap[AD7193_REG_MODE] &= 0x1FFFFF; //keep all bit values except Channel bits , this resets the 3 topmost mode bits
+
+  SetRegisterValue(AD7193_REG_MODE, registerMap[AD7193_REG_MODE], registerSize[AD7193_REG_MODE], DISABLE_CS_AFTER_TRANSFER);
+}
+
 unsigned long AD7193::ReadADCData(void)  {
 
     unsigned char byteIndex = 0;
