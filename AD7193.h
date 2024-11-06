@@ -45,12 +45,12 @@ public:
 	void SetAveraging(int filterRate);
 	void SetChannel(int channel);
 	
-	void SetPsuedoDifferentialInputs(void);
+	void SetPseudoDifferentialInputs(void);
 	void AppendStatusValuetoData(void);
 	
 	unsigned long ReadADCChannel(int channel);
 	unsigned long ReadADCData(void);
-	void IntitiateSingleConversion(void);
+	void InitiateSingleConversion(void);
 	void WaitForADC(void);
 	
 

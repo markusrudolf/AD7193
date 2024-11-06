@@ -75,7 +75,7 @@ void setup() {
   AD7193.SetAveraging(100);
 
   // sets input to measure across channel input and AINCOM pin
-  AD7193.SetPsuedoDifferentialInputs();
+  AD7193.SetPseudoDifferentialInputs();
 
   /////////////////////////////////////
   // Calibrate with given PGA settings - need to recalibrate if PGA setting is changed

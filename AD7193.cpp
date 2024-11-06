@@ -104,7 +104,7 @@ void AD7193::SetAveraging(int filterRate)  {
 }
 
 
-void AD7193::SetPsuedoDifferentialInputs(void)  {
+void AD7193::SetPseudoDifferentialInputs(void)  {
   Serial.println("Switching from differential input to pseudo differential inputs...");
 
   unsigned long psuedoBit = 0x040000;
@@ -184,7 +184,7 @@ void AD7193::WaitForADC(void)  {
     }
 }
 
-void AD7193::IntitiateSingleConversion(void) {
+void AD7193::InitiateSingleConversion(void) {
   //Serial.print("    Initiate Single Conversion... (Device will go into low pwer mode when conversion complete)");
 
   // Begin Communication cycle, bring CS low manually
@@ -237,7 +237,7 @@ unsigned long AD7193::ReadADCChannel(int channel)  {
     SetChannel(channel);
 
     // write command to initial conversion
-    IntitiateSingleConversion();
+    InitiateSingleConversion();
     //delay(100); // hardcoded wait time for data to be ready
     // should scale the wait time by averaging
 
